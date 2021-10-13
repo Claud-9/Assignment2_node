@@ -26,7 +26,7 @@ todoRouter.post("/", auth, async (req, res) => {
                     .status(400)
                     .json({ msg: "Not Authorized!" });
                 } else {
-                    await Todo.find()
+                    await Todo.find({ username: username })
                     .then((todos) => res.json(todos))
                     .catch((err) => res.status(400).json(err));
                 }
@@ -37,16 +37,15 @@ todoRouter.post("/", auth, async (req, res) => {
     }
 });
 
-todoRouter.post("/create", async (req, res) => {
+todoRouter.post("/create", auth, async (req, res) => {
     try {
         const username = req.body.username;
-        const password = req.body.password;
         const title = req.body.title;
         const description = req.body.description;
         const date = req.body.date;
     
         // validate
-        if (!username || !password || !title || !description || !date) {
+        if (!username || !title || !date || !description) {
             return res.status(400).json({ msg: "Not all fields have been entered." });
         } else {
             const existingUser = await User.findOne({ username: username });
@@ -56,23 +55,17 @@ todoRouter.post("/create", async (req, res) => {
                 .status(400)
                 .json({ msg: "An account with this Clinic ID does not exists." });
             } else {
-                const passwordMatch = await bcrypt.compare(password, existingUser.password);
-                if (!passwordMatch) {
-                    return res
-                    .status(400)
-                    .json({ msg: "Not Authorized!" });
-                } else {
-                    const newTodo = new Todo({
-                        title,
-                        description,
-                        date
-                    });
-                    const savedTodo = await newTodo.save()
-                    .then(() => {
-                        res.json('Todo created!');
-                    })
-                    .catch(err => res.status(400).json(err));
-                }
+                const newTodo = new Todo({
+                    username,
+                    title,
+                    description,
+                    date
+                });
+                const savedTodo = await newTodo.save()
+                .then(() => {
+                    res.json('Todo created!');
+                })
+                .catch(err => res.status(400).json(err));
             }
         }
     } catch (err) {
