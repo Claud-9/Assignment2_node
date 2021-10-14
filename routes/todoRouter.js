@@ -114,4 +114,40 @@ todoRouter.post("/update", auth, async (req, res) => {
     }
 });
 
+todoRouter.post("/delete", auth, async (req, res) => {
+    try {
+        const username = req.body.username;
+        const password = req.body.password;
+        const id = req.body._id;
+
+        if (!username || !password || !id) {
+            return res.status(400).json({ msg: "Not all the required fields have been entered!" });
+        } else {
+            const existingUser = await User.findOne({ username: username });
+
+            if (!existingUser) {
+                return res
+                .status(400)
+                .json({ msg: "An account with this username does not exists!" });
+            } else {
+                const passwordMatch = await bcrypt.compare(password, existingUser.password);
+
+                if (!passwordMatch) {
+                    return res
+                    .status(400)
+                    .json({ msg: "Not Authorized!" });
+                } else {
+                    Todo.findByIdAndDelete(id)
+                    .then((todo) => {
+                        res.json('Successfully deleted!')
+                    })
+                    .catch(err => res.status(400).json(err));
+                }
+            }
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = todoRouter;
