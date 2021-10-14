@@ -43,6 +43,7 @@ todoRouter.post("/create", auth, async (req, res) => {
         const title = req.body.title;
         const description = req.body.description;
         const date = req.body.date;
+        const completion = 0;
     
         // validate
         if (!username || !title || !date || !description) {
@@ -53,12 +54,13 @@ todoRouter.post("/create", auth, async (req, res) => {
             if (!existingUser) {
                 return res
                 .status(400)
-                .json({ msg: "An account with this Clinic ID does not exists." });
+                .json({ msg: "An account with this username does not exists." });
             } else {
                 const newTodo = new Todo({
                     username,
                     title,
                     description,
+                    completion,
                     date
                 });
                 const savedTodo = await newTodo.save()
